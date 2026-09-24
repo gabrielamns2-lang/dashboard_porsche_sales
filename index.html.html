@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Porsche Sales Intelligence | Executive Dashboard</title>
+    <!-- Tailwind CSS para estruturação rápida e elegante -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js para os gráficos interativos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #0b0b0b;
+            color: #f4f4f5;
+        }
+        .porsche-card {
+            background: #141414;
+            border: 1px solid #27272a;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header Estilo Porsche -->
+    <header class="border-b border-zinc-800 bg-black/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <span class="text-2xl font-bold tracking-widest text-white">PORSCHE</span>
+                <span class="text-xs uppercase tracking-widest text-zinc-500 border-l border-zinc-700 pl-4">Sales Intelligence</span>
+            </div>
+            <div class="text-sm text-zinc-400">
+                Status: <span class="text-emerald-400 font-medium">Online (Live)</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-6 py-8 flex-grow w-full space-y-8">
+
+        <!-- Seção de KPIs de Negócio -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="porsche-card p-6 rounded-xl">
+                <p class="text-xs uppercase tracking-wider text-zinc-400">Faturamento Total</p>
+                <h3 id="kpi-revenue" class="text-3xl font-bold text-white mt-2">$0.00</h3>
+                <span class="text-xs text-emerald-400 mt-1 inline-block">100% dos dados filtrados</span>
+            </div>
+            <div class="porsche-card p-6 rounded-xl">
+                <p class="text-xs uppercase tracking-wider text-zinc-400">Veículos Comercializados</p>
+                <h3 id="kpi-count" class="text-3xl font-bold text-white mt-2">0</h3>
+                <span class="text-xs text-zinc-500 mt-1 inline-block">Unidades registradas</span>
+            </div>
+            <div class="porsche-card p-6 rounded-xl">
+                <p class="text-xs uppercase tracking-wider text-zinc-400">Preço Médio de Venda</p>
+                <h3 id="kpi-avg-price" class="text-3xl font-bold text-white mt-2">$0.00</h3>
+                <span class="text-xs text-zinc-500 mt-1 inline-block">Ticket médio global</span>
+            </div>
+            <div class="porsche-card p-6 rounded-xl">
+                <p class="text-xs uppercase tracking-wider text-zinc-400">Modelo Mais Vendido</p>
+                <h3 id="kpi-top-model" class="text-xl font-bold text-white mt-2 truncate">-</h3>
+                <span class="text-xs text-zinc-500 mt-1 inline-block">Líder de volume</span>
+            </div>
+        </div>
+
+        <!-- Filtros Globais -->
+        <div class="porsche-card p-6 rounded-xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-xs uppercase tracking-wider text-zinc-400 mb-2">Modelo de Porsche</label>
+                <select id="filter-model" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-zinc-400">
+                    <option value="ALL">Todos os Modelos</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs uppercase tracking-wider text-zinc-400 mb-2">Estado (State)</label>
+                <select id="filter-state" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-zinc-400">
+                    <option value="ALL">Todos os Estados</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs uppercase tracking-wider text-zinc-400 mb-2">Método de Pagamento</label>
+                <select id="filter-pay" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-zinc-400">
+                    <option value="ALL">Todos os Métodos</option>
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button id="reset-filters" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-medium py-2.5 px-4 rounded-lg text-sm transition-colors border border-zinc-700">
+                    Limpar Filtros
+                </button>
+            </div>
+        </div>
+
+        <!-- Gráficos e Respostas Analíticas -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Gráfico 1 -->
+            <div class="porsche-card p-6 rounded-xl flex flex-col justify-between">
+                <div>
+                    <h4 class="text-base font-semibold text-white">Faturamento por Modelo de Veículo</h4>
+                    <p class="text-xs text-zinc-400 mt-1">Responde à pergunta de quais modelos geram maior receita.</p>
+                </div>
+                <div class="relative h-80 mt-4">
+                    <canvas id="chartRevenueByModel"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfico 2 -->
+            <div class="porsche-card p-6 rounded-xl flex flex-col justify-between">
+                <div>
+                    <h4 class="text-base font-semibold text-white">Preferência de Pagamento por Volume</h4>
+                    <p class="text-xs text-zinc-400 mt-1">Análise dos métodos mais utilizados nas transações.</p>
+                </div>
+                <div class="relative h-80 mt-4">
+                    <canvas id="chartPayMethod"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-zinc-800 py-6 text-center text-xs text-zinc-500">
+        Porsche Sales Dashboard • Desenvolvido para fins educacionais e portfólio profissional.
+    </footer>
+
+    <!-- Script de Dados e Lógica do Dashboard -->
+    <script>
+        // Amostra estruturada baseada na planilha tratada da Porsche
+        const rawData = [
+            { model: "718 Cayman", year: 2022, price: 79500, mileage: 9800, payMethod: "Credit Card", state: "MA" },
+            { model: "911 Turbo S", year: 2024, price: 235000, mileage: 1200, payMethod: "Wire Transfer", state: "WA" },
+            { model: "Cayenne Coupe", year: 2023, price: 130000, mileage: 5400, payMethod: "Bank Transfer", state: "CA" },
+            { model: "Macan S", year: 2022, price: 72000, mileage: 15000, payMethod: "Financing", state: "NY" },
+            { model: "Taycan 4S", year: 2023, price: 115000, mileage: 8900, payMethod: "Wire Transfer", state: "FL" },
+            { model: "Panamera 4", year: 2021, price: 95000, mileage: 22000, payMethod: "Credit Card", state: "TX" },
+            { model: "911 Carrera S", year: 2024, price: 150000, mileage: 3000, payMethod: "Wire Transfer", state: "FL" },
+            { model: "Cayenne E-Hybrid", year: 2023, price: 105000, mileage: 11000, payMethod: "Financing", state: "CA" }
+        ];
+
+        let chartRevenueInstance = null;
+        let chartPayInstance = null;
+
+        function initDashboard() {
+            populateFilters();
+            updateDashboard(rawData);
+            setupEventListeners();
+        }
+
+        function populateFilters() {
+            const models = [...new Set(rawData.map(d => d.model))].sort();
+            const states = [...new Set(rawData.map(d => d.state))].sort();
+            const pays = [...new Set(rawData.map(d => d.payMethod))].sort();
+
+            const modelSelect = document.getElementById('filter-model');
+            models.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m; opt.textContent = m;
+                modelSelect.appendChild(opt);
+            });
+
+            const stateSelect = document.getElementById('filter-state');
+            states.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s; opt.textContent = s;
+                stateSelect.appendChild(opt);
+            });
+
+            const paySelect = document.getElementById('filter-pay');
+            pays.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p; opt.textContent = p;
+                paySelect.appendChild(opt);
+            });
+        }
+
+        function setupEventListeners() {
+            document.getElementById('filter-model').addEventListener('change', filterData);
+            document.getElementById('filter-state').addEventListener('change', filterData);
+            document.getElementById('filter-pay').addEventListener('change', filterData);
+            document.getElementById('reset-filters').addEventListener('click', () => {
+                document.getElementById('filter-model').value = 'ALL';
+                document.getElementById('filter-state').value = 'ALL';
+                document.getElementById('filter-pay').value = 'ALL';
+                updateDashboard(rawData);
+            });
+        }
+
+        function filterData() {
+            const selModel = document.getElementById('filter-model').value;
+            const selState = document.getElementById('filter-state').value;
+            const selPay = document.getElementById('filter-pay').value;
+
+            const filtered = rawData.filter(d => {
+                return (selModel === 'ALL' || d.model === selModel) &&
+                       (selState === 'ALL' || d.state === selState) &&
+                       (selPay === 'ALL' || d.payMethod === selPay);
+            });
+
+            updateDashboard(filtered);
+        }
+
+        function updateDashboard(data) {
+            // KPIs
+            const totalRevenue = data.reduce((acc, curr) => acc + curr.price, 0);
+            const totalCount = data.length;
+            const avgPrice = totalCount > 0 ? totalRevenue / totalCount : 0;
+
+            // Top Model
+            const modelCounts = {};
+            data.forEach(d => { modelCounts[d.model] = (modelCounts[d.model] || 0) + 1; });
+            const topModel = Object.keys(modelCounts).reduce((a, b) => modelCounts[a] > modelCounts[b] ? a : b, '-');
+
+            document.getElementById('kpi-revenue').textContent = totalRevenue.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+            document.getElementById('kpi-count').textContent = totalCount;
+            document.getElementById('kpi-avg-price').textContent = avgPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+            document.getElementById('kpi-top-model').textContent = totalCount > 0 ? topModel : 'N/A';
+
+            renderCharts(data);
+        }
+
+        function renderCharts(data) {
+            // Agrupar por Modelo para Faturamento
+            const revenueByModel = {};
+            data.forEach(d => {
+                revenueByModel[d.model] = (revenueByModel[d.model] || 0) + d.price;
+            });
+
+            // Agrupar por Método de Pagamento
+            const payCounts = {};
+            data.forEach(d => {
+                payCounts[d.payMethod] = (payCounts[d.payMethod] || 0) + 1;
+            });
+
+            // Destruir gráficos anteriores se existirem
+            if (chartRevenueInstance) chartRevenueInstance.destroy();
+            if (chartPayInstance) chartPayInstance.destroy();
+
+            // Configuração Chart 1
+            const ctx1 = document.getElementById('chartRevenueByModel').getContext('2d');
+            chartRevenueInstance = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(revenueByModel),
+                    datasets: [{
+                        label: 'Faturamento ($)',
+                        data: Object.values(revenueByModel),
+                        backgroundColor: '#d4af37',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#a1a1aa', font: { size: 10 } }, grid: { display: false } },
+                        y: { ticks: { color: '#a1a1aa' }, grid: { color: '#27272a' } }
+                    }
+                }
+            });
+
+            // Configuração Chart 2
+            const ctx2 = document.getElementById('chartPayMethod').getContext('2d');
+            chartPayInstance = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(payCounts),
+                    datasets: [{
+                        data: Object.values(payCounts),
+                        backgroundColor: ['#d4af37', '#52525b', '#a1a1aa', '#27272a'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#a1a1aa', font: { size: 11 } } }
+                    }
+                }
+            });
+        }
+
+        window.onload = initDashboard;
+    </script>
+</body>
+</html>
